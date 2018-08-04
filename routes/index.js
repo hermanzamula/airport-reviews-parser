@@ -129,11 +129,10 @@ router.get('/:airportName/reviews', function (req, res) {
  *                 type: string
  *                 format: binary
  *         application/json:
+ *           example:
+ *             url: https://bitbucket.org/simongausmann/dreamlines-some-csv-file/raw/a64f652a881a0de1e4dbe569df604f47a3ac1e52/airport.csv
  *           schema:
  *             type: object
- *             properties:
- *               url:
- *                 type: string
  *     responses:
  *       200:
  *         description: Successful upload message
