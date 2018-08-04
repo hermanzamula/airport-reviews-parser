@@ -5,12 +5,22 @@ const multiparty = require('multiparty');
 const fs = require('fs');
 const hash = require('object-hash');
 
-// TODO: Implement storage in external db, split express routes and business logic
 const reviewsStorage = {};
 const existedReviewsHashes = new Set();
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * /api/all/stats:
+ *   get:
+ *     description: Returns a list of review statistics per airport. Each item consists of the fields airportName and reviewCount. The collection is ordered by reviewCount in descending order.
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       200:
+ *         description: a list of the stats
+ */
 router.get('/all/stats', function (req, res) {
     const reviewsStats = Object.keys(reviewsStorage).map(airportName => {
         return {
@@ -20,10 +30,28 @@ router.get('/all/stats', function (req, res) {
     res.status(200).send(reviewsStats.sort((a, b) => b.reviewCount - a.reviewCount));
 });
 
+/**
+ * @swagger
+ * /api/{airportName}/stats:
+ *   get:
+ *     description: Returns detailed stats for a given airport
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: airportName
+ *         description: Airport name.
+ *         in: path
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         description: an object that contains the statistics for the airport
+ *
+ */
 router.get('/:airportName/stats', function (req, res) {
     let reviews = reviewsStorage[req.params.airportName];
     if (!reviews) {
-        return res.status(404).send(`Review for the airport ${req.params.airportName} doesn't exists`);
+        return res.status(404).send(`Reviews for the airport ${req.params.airportName} doesn't exists`);
     }
 
     const stats = {
@@ -43,10 +71,28 @@ router.get('/:airportName/stats', function (req, res) {
     res.send(stats);
 });
 
+/**
+ * @swagger
+ * /api/{airportName}/reviews:
+ *   get:
+ *     description: Returns a list of reviews for the given airport, ordered by date. The latest review is returned as the first element.
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: airportName
+ *         description: Airport name.
+ *         in: path
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         description: an array of the review objects
+ *
+ */
 router.get('/:airportName/reviews', function (req, res) {
     let reviews = reviewsStorage[req.params.airportName];
     if (!reviews) {
-        return res.status(404).send(`Review for the airport ${req.params.airportName} doesn't exist`);
+        return res.status(404).send(`Reviews for the airport ${req.params.airportName} doesn't exist`);
     }
     if (req.query.ratingThreshold) {
         reviews = reviews.filter(r => r.overall_rating >= req.query.ratingThreshold);
@@ -54,6 +100,45 @@ router.get('/:airportName/reviews', function (req, res) {
     res.send(reviews.sort((a, b) => b.date - a.date));
 });
 
+/**
+ * @swagger
+ * /api/upload:
+ *   post:
+ *     description: Uploads a csv file by link or using multipart/form-data
+ *     parameters:
+ *       - name: file
+ *         in: formData
+ *         description: CSV to upload
+ *         required: false
+ *         type: file
+ *       - name: url
+ *         in: json
+ *         description: Set url to upload from
+ *         required: false
+ *         type: object
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           encoding:
+ *             file:
+ *               contentType: text/csv
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               url:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Successful upload message
+ *
+ */
 router.post('/upload', function (req, res) {
     const url = req.body.url;
     if (url) {

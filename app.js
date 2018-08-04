@@ -7,8 +7,21 @@ const indexRouter = require('./routes/index');
 
 const app = express();
 
-// const swaggerUi = require('swagger-ui-express');
-// const swaggerDocument = require('./swagger.json');
+const swaggerJSDoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
+
+const options = {
+    definition: {
+        info: {
+            title: 'Airport Reviews Parser', // Title (required)
+            version: '0.0.0', // Version (required)
+        },
+    },
+    apis: ['./routes/index.js'], // Path to the API docs
+};
+
+// Initialize swagger-jsdoc -> returns validated swagger spec in json format
+const swaggerSpec = swaggerJSDoc(options);
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -16,8 +29,7 @@ app.use(express.urlencoded({extended: false}));
 app.use(cookieParser());
 
 app.use('/api', indexRouter);
-// TODO: Setup swagger jsDoc
-// app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
