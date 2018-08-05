@@ -51,7 +51,7 @@ router.get('/all/stats', function (req, res) {
 router.get('/:airportName/stats', function (req, res) {
     let reviews = reviewsStorage[req.params.airportName];
     if (!reviews) {
-        return res.status(404).send(`Reviews for the airport ${req.params.airportName} doesn't exists`);
+        return res.status(404).send(`Reviews for the airport ${req.params.airportName} don't exist`);
     }
 
     const stats = {
@@ -92,7 +92,7 @@ router.get('/:airportName/stats', function (req, res) {
 router.get('/:airportName/reviews', function (req, res) {
     let reviews = reviewsStorage[req.params.airportName];
     if (!reviews) {
-        return res.status(404).send(`Reviews for the airport ${req.params.airportName} doesn't exist`);
+        return res.status(404).send(`Reviews for the airport ${req.params.airportName} don't exist`);
     }
     if (req.query.ratingThreshold) {
         reviews = reviews.filter(r => r.overall_rating >= req.query.ratingThreshold);
